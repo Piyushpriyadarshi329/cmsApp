@@ -56,9 +56,9 @@ const Login = () => {
               >
                 <LuBox size={50} className="text-primary" />
               </motion.span>
-              <div className="w-full flex flex-col">
-                <h1 className="text-[26px] mb-1.5 !text-primary">CMS</h1>
-                <p className="text-text-secondary mb-7">
+              <div className="w-full flex flex-col mb-7">
+                <h1 className="text-[26px] !text-primary">CMS</h1>
+                <p className="text-text-secondary">
                   Sign in to manage your contracts
                 </p>
               </div>

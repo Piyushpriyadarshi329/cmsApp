@@ -47,6 +47,7 @@ export function useProposal(proposalId) {
         }
     }, [proposalId, fetchProposal]);
 
+
     return { proposal, loading, savingDiscussion, addDiscussion };
 }
 
@@ -80,18 +81,31 @@ export function useProposals(tenantId) {
 
     const addProposal = useCallback(async (payload) => {
         setSaving(true);
+
         try {
-            const { data } = await post(`/tenant/proposal`, payload);
+            const { data } = await post("/tenant/proposal", payload);
+
             const newProposal = data?.data ?? data;
+
             setProposals((prev) => [...prev, newProposal]);
-            return true;
+
+            return {
+                success: true,
+                data: newProposal,
+                error: null,
+            };
         } catch (error) {
             console.error("Failed to create proposal:", error);
-            return false;
+
+            return {
+                success: false,
+                data: null,
+                error: error?.response?.data ?? error,
+            };
         } finally {
             setSaving(false);
         }
-    }, [tenantId]);
+    }, []);
 
     return { proposals, loading, saving, addProposal };
 }

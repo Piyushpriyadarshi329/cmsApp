@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { LuArrowLeft, LuCalendar, LuPlus } from "react-icons/lu";
 import Button from "../../common/Button/Button";
@@ -35,7 +35,7 @@ const CONTRACT_TYPES = [
 
 const CONTRACT_STATUS = "MANAGER_APPROVAL_PENDING";
 
-function ContractFormModal({ proposalId, defaultTitle, saving, onClose, onSubmit }) {
+function ContractFormModal({ proposalId, defaultTitle, saving, onClose, onSubmit, onSuccess }) {
     const [form, setForm] = useState({
         contractTitle: defaultTitle ?? "",
         contractType: "",
@@ -53,7 +53,10 @@ function ContractFormModal({ proposalId, defaultTitle, saving, onClose, onSubmit
             status: CONTRACT_STATUS,
             contractType: form.contractType,
         });
-        if (success) onClose();
+        if (success) {
+            onSuccess();
+            onClose();
+        }
     };
 
     return (
@@ -342,6 +345,7 @@ export default function ProposalDiscussion() {
     const { proposal, loading, savingDiscussion, addDiscussion } = useProposal(id);
     const [discussionModal, setDiscussionModal] = useState(false);
     const [contractModal, setContractModal] = useState(false);
+    const [contractCreated, setContractCreated] = useState(false);
     const { saving: savingContract, createContract } = useCreateContract();
 
     const discussions = [...(proposal?.discussions ?? [])].sort(
@@ -350,7 +354,9 @@ export default function ProposalDiscussion() {
     const versions = [...(proposal?.versions ?? [])].sort(
         (a, b) => (b.proposalVersionNumber ?? 0) - (a.proposalVersionNumber ?? 0)
     );
-    const isComplete = (proposal?.status || "").toUpperCase() === "COMPLETE";
+    const isComplete =
+        contractCreated ||
+        (proposal?.status || "").toUpperCase() === "COMPLETE";
 
     return (
         <div>
@@ -370,7 +376,7 @@ export default function ProposalDiscussion() {
                         {proposal?.proposalNumber || `Proposal ID: ${id}`}
                     </p>
                 </div>
-                {!isComplete && (
+                {!isComplete && user?.role === "SALES" && (
                     <Button className="!w-auto px-4" onClick={() => setContractModal(true)}>
                         Convert to Contract
                     </Button>
@@ -433,14 +439,21 @@ export default function ProposalDiscussion() {
                         )}
 
                         <div className="flex justify-end border-t border-border px-4 py-3">
-                            <Button
-                                className="!w-auto flex items-center gap-2 !py-2 px-4"
-                                onClick={() => setDiscussionModal(true)}
-                            >
-                                <LuPlus className="h-4 w-4" />
-                                Add Discussion
-                            </Button>
+                            {
+                                proposal?.status === "DRAFT" && user?.role === "SALES"
+                                ?
+                                <Button
+                                    className="!w-auto flex items-center gap-2 !py-2 px-4"
+                                    onClick={() => setDiscussionModal(true)}
+                                >
+                                    <LuPlus className="h-4 w-4" />
+                                    Add Discussion
+                                </Button>
+                                :
+                                ''
+                            }
                         </div>
+
                     </div>
 
                     <div className="flex flex-col gap-6">
@@ -547,6 +560,7 @@ export default function ProposalDiscussion() {
                     saving={savingContract}
                     onClose={() => setContractModal(false)}
                     onSubmit={createContract}
+                    onSuccess={() => setContractCreated(true)}
                 />
             )}
         </div>

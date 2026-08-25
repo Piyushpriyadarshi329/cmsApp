@@ -4,7 +4,7 @@ import FileUpload from "../../common/FileUpload/FileUpload";
 import Modal from "../../Modal";
 import ErrorMessage from "../../common/Error/ErrorMessage";
 
-export default function ESignModal({ contract, signing, onClose, onSubmit }) {
+export default function ESignModal({ contract, signing, onClose, onSubmit, otpRequired=false }) {
     const [signature, setSignature] = useState(null);
     const [otp, setOtp] = useState("");
     const [error, setError] = useState("");
@@ -55,22 +55,26 @@ export default function ESignModal({ contract, signing, onClose, onSubmit }) {
                     )}
                 </div>
 
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-text-primary">OTP</label>
-                    <input
-                        type="text"
-                        required
-                        inputMode="numeric"
-                        pattern="^[0-9]{4,8}$"
-                        title="Enter the 4-8 digit OTP"
-                        placeholder="Enter OTP"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
-                    />
-                </div>
+                {
+                    otpRequired
+                    &&
+                    <div>
+                        <label className="mb-1 block text-sm font-medium text-text-primary">OTP</label>
+                        <input
+                            type="text"
+                            required
+                            inputMode="numeric"
+                            pattern="^[0-9]{4,8}$"
+                            title="Enter the 4-8 digit OTP"
+                            placeholder="Enter OTP"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
+                        />
+                    </div>
+                }
 
-                {error && <ErrorMessage message={error} />}
+                {error && <ErrorMessage variant="background" message={error} />}
 
                 <div className="mt-2 flex justify-end gap-3">
                     <button

@@ -36,10 +36,20 @@ export function useClients(tenantId) {
             const { data } = await post(`/tenant/client`, payload);
             const newClient = data?.data ?? data;
             setClients((prev) => [...prev, newClient]);
-            return true;
+            return {
+                success: true,
+                data: newClient,
+            };
         } catch (error) {
             console.error("Failed to create client:", error);
-            return false;
+
+            return {
+                success: false,
+                error:
+                    error?.response?.data?.message ||
+                    error?.response?.data?.error ||
+                    "Failed to create client",
+            };
         } finally {
             setSaving(false);
         }
@@ -51,10 +61,19 @@ export function useClients(tenantId) {
             const { data } = await put(`/tenant/client/${id}`, payload);
             const updated = data?.data ?? data;
             setClients((prev) => prev.map((client) => (client.id === id ? { ...client, ...updated } : client)));
-            return true;
+            return {
+                success: true,
+                data: updated,
+            };
         } catch (error) {
             console.error("Failed to update client:", error);
-            return false;
+            return {
+                success: false,
+                error:
+                    error?.response?.data?.message ||
+                    error?.response?.data?.error ||
+                    "Failed to update client",
+            };
         } finally {
             setSaving(false);
         }

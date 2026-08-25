@@ -84,7 +84,7 @@ export default function FileUpload({
         />
       </div>
 
-      <ErrorMessage message={error} />
+      <ErrorMessage variant="background" message={error} />
     </div>
   );
 }

@@ -8,6 +8,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useContract, useESign, contractId } from "../../hooks/useContracts";
 import ESignModal from "../ESign/ESignModal";
 import { formatAmount, formatDate, humanize } from "../../services/utility";
+import Modal from "../../Modal/index.jsx";
+import ErrorMessage from "../../common/Error/ErrorMessage.jsx";
 
 // Each pending status is actionable by exactly one role, per the backend Role enum,
 // and each role approves through its own endpoint.
@@ -46,6 +48,8 @@ export default function ContractDetail() {
     const { contract, loading, acting, runAction, refresh } = useContract(id);
     const { signing, signContract } = useESign();
     const [signModal, setSignModal] = useState(false);
+    const [confirmRevert, setConfirmRevert] = useState(false);
+    const [apiError, setApiError] = useState(false);
 
     const proposal = contract?.proposal;
     const tenant = contract?.tenant ?? proposal?.tenant;
@@ -57,17 +61,31 @@ export default function ContractDetail() {
         (a, b) => (b.proposalVersionNumber ?? 0) - (a.proposalVersionNumber ?? 0)
     );
     const timeline = [...(contract?.timeLine ?? [])].sort(
-        (a, b) => new Date(a.actionAt) - new Date(b.actionAt)
+        (a, b) => a.actionTime - b.actionTime
     );
     const stage = APPROVAL_STAGE_BY_STATUS[(contract?.status || "").toUpperCase()];
     const canAct = !!stage && !!user?.role && stage.role === user.role.toUpperCase();
     const canSign = (contract?.status || "").toUpperCase() === PENDING_SIGNATURE;
 
     const handleRevert = async () => {
-        if (!window.confirm("Revert this contract back to the proposal? The contract will leave approval.")) {
-            return;
+        try {
+            setApiError(null);
+
+            const success = await runAction("revert");
+
+            if (success) {
+                setConfirmRevert(false);
+            }
+        } catch (error) {
+            console.error("Revert failed:", error);
+
+            setApiError(
+                error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                error?.message ||
+                "Failed to revert contract. Please try again."
+            );
         }
-        await runAction("revert");
     };
 
     return (
@@ -91,7 +109,7 @@ export default function ContractDetail() {
                     </p>
                 </div>
 
-                {canSign && (
+                {canSign && user?.role === "LEGAL" && (
                     <button
                         type="button"
                         onClick={() => setSignModal(true)}
@@ -106,11 +124,13 @@ export default function ContractDetail() {
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            disabled={!!acting}
-                            onClick={handleRevert}
+                            onClick={() => {
+                                setApiError(null);
+                                setConfirmRevert(true);
+                            }}
                             className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            {acting === "revert" ? "Reverting..." : "Revert to Proposal"}
+                            Revert to Proposal
                         </button>
                         <Button
                             className="!w-auto px-4"
@@ -305,24 +325,32 @@ export default function ContractDetail() {
                                             marker={
                                                 <span className="flex items-center gap-1.5 text-xs font-medium text-primary-text">
                                                     <LuCalendar className="h-3.5 w-3.5" />
-                                                    {formatDate(entry.actionAt, true)}
+                                                    {formatDate(
+                                                        new Date(entry.actionTime).toISOString(),
+                                                        true
+                                                    )}
                                                 </span>
                                             }
                                         >
                                             <div className="mt-2 rounded-lg border border-border p-3">
                                                 <p className="text-sm font-semibold text-text-primary">
-                                                    {humanize(entry.action)}
+                                                    {entry.name || humanize(entry.type)}
                                                 </p>
+
                                                 <p className="mt-1 text-xs text-text-secondary">
-                                                    {entry.actionByName || "-"}
+                                                    {entry.owner?.ownerName || "-"}
                                                 </p>
-                                                {entry.actionByEmail && (
+
+                                                {entry.email && (
                                                     <p className="truncate text-xs text-text-secondary">
-                                                        {entry.actionByEmail}
+                                                        {entry.email}
                                                     </p>
                                                 )}
-                                                {entry.comment && entry.comment !== "-" && (
-                                                    <p className="mt-2 text-sm text-text-primary">{entry.comment}</p>
+
+                                                {entry.status && (
+                                                    <span className="mt-2 inline-block rounded-full bg-primary-light px-2 py-1 text-xs font-medium text-primary-text">
+                                {humanize(entry.status)}
+                            </span>
                                                 )}
                                             </div>
                                         </TimelineItem>
@@ -392,6 +420,28 @@ export default function ContractDetail() {
                     }}
                 />
             )}
+
+
+            {
+                confirmRevert
+                &&
+                <Modal title="Revert to Proposal" onClose={() => setConfirmRevert(false)} width={300}>
+                    <div className="w-full flex flex-col gap-4">
+                        <ErrorMessage variant="background" message={apiError} />
+                        <p>Are you sure you want to revert ?</p>
+                        <div className="w-full flex gap-1 items-center justify-end">
+                            <Button
+                                variant="primary"
+                                onClick={handleRevert}
+                                loading={acting === "revert"}
+                                disabled={!!acting}
+                            >
+                                Revert
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+            }
         </div>
     );
 }

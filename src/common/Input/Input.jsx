@@ -1,17 +1,34 @@
-export default function Input({ label, id, error, className = '', ...props }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      {label && (
-        <label htmlFor={id} className="text-sm font-medium text-gray-700">
-          {label}
+import ErrorMessage from "../Error/ErrorMessage.jsx";
+
+
+export default function Input({
+                                  label,
+                                  error,
+                                  required,
+                                  showErrorIcon = true,
+                                  className = "",
+                                  containerClassName = "",
+                                  ...props
+                              }) {
+    return (
+        <label
+            className={`flex flex-col gap-[6px] text-[13px] font-medium text-text-secondary ${containerClassName}`}
+        >
+            {label && (
+                <span>
+          {label} {required && "*"}
+        </span>
+            )}
+            <input
+                className={`border rounded-lg px-[12px] py-[9px] text-[14px] text-text-primary bg-bg outline-none transition-colors duration-150 ease-in-out focus:bg-surface ${
+                    error
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-border focus:border-primary-text"
+                } ${className}`}
+                required={required}
+                {...props}
+            />
+            {error && <ErrorMessage message={error} showIcon={showErrorIcon} />}
         </label>
-      )}
-      <input
-        id={id}
-        className={`w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 ${className}`}
-        {...props}
-      />
-      {error && <p className="text-sm text-red-600">{error}</p>}
-    </div>
-  )
+    );
 }
