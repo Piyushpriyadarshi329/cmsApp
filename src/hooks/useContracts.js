@@ -43,7 +43,8 @@ export function useContract(id) {
             return true;
         } catch (error) {
             console.error(`Failed to ${action} contract:`, error);
-            return false;
+
+            throw error;
         } finally {
             setActing(null);
         }

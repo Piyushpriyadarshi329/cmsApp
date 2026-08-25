@@ -6,6 +6,12 @@ import InlineTab from "../../common/InlineTab/InlineTab";
 import Loader from "../../common/Loader/Loader";
 import Modal from "../../Modal";
 import { useClient, useClientMembers } from "../../hooks/useClientDetail";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {addClientSchema} from "../../schema/client/addClientSchema.js";
+import {addMemberSchema} from "../../schema/client/addMemberSchema.js";
+import Input from "../../common/Input/Input.jsx";
+import ErrorMessage from "../../common/Error/ErrorMessage.jsx";
 
 const DETAIL_FIELDS = [
     { label: "PAN", key: "pan" },
@@ -62,73 +68,74 @@ function DetailsTab({ client }) {
 }
 
 function MemberFormModal({ saving, onClose, onSubmit }) {
-    const [form, setForm] = useState(MEMBER_FORM);
+    const [apiError, setApiError] = useState(null);
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting },
+    } = useForm({
+        resolver: zodResolver(addMemberSchema),
+        defaultValues: MEMBER_FORM,
+    });
 
-    const handleChange = (field) => (e) => {
-        const value = field === "active" ? e.target.checked : e.target.value;
-        setForm((prev) => ({ ...prev, [field]: value }));
-    };
+    const handleSubmitForm = async (data) => {
+        setApiError(null);
+        const result = await onSubmit(data);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const success = await onSubmit(form);
-        if (success) onClose();
+        if (result.success) {
+            reset();
+            onClose();
+            return;
+        }
+        if (result.error?.errors && Object.keys(result.error.errors).length > 0) {
+            const validationErrors = Object.entries(result.error.errors)
+                .map(([field, message]) => `${field}: ${message}`)
+                .join(", ");
+
+            setApiError(validationErrors);
+        } else {
+            setApiError(result.error?.message || "Failed to create member");
+        }
     };
 
     return (
         <Modal title="Create Member" onClose={onClose} width={560}>
-            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-text-primary">First Name</label>
-                    <input
-                        type="text"
-                        required
-                        value={form.firstname}
-                        onChange={handleChange("firstname")}
-                        className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
-                    />
-                </div>
+            {apiError && <ErrorMessage message={apiError} variant={"background"} />}
+            <br />
+            <form onSubmit={handleSubmit(handleSubmitForm)} className="grid grid-cols-2 gap-4">
+                <Input
+                    label="First Name*"
+                    {...register("firstname")}
+                    error={errors.firstname?.message}
+                    showErrorIcon={false}
+                />
 
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-text-primary">Last Name</label>
-                    <input
-                        type="text"
-                        required
-                        value={form.lastname}
-                        onChange={handleChange("lastname")}
-                        className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
-                    />
-                </div>
+                <Input
+                    label="Last Name*"
+                    {...register("lastname")}
+                    error={errors.lastname?.message}
+                    showErrorIcon={false}
+                />
 
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-text-primary">Email</label>
-                    <input
-                        type="email"
-                        required
-                        value={form.email}
-                        onChange={handleChange("email")}
-                        className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
-                    />
-                </div>
+                <Input
+                    label="Email*"
+                    {...register("email")}
+                    error={errors.email?.message}
+                    showErrorIcon={false}
+                />
 
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-text-primary">Mobile</label>
-                    <input
-                        type="tel"
-                        required
-                        pattern="^\+?[0-9]{10,15}$"
-                        title="Enter a valid mobile number (10-15 digits, optional +)"
-                        value={form.mobile}
-                        onChange={handleChange("mobile")}
-                        className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
-                    />
-                </div>
+                <Input
+                    label="Mobile*"
+                    {...register("mobile")}
+                    error={errors.mobile?.message}
+                    showErrorIcon={false}
+                />
 
                 <label className="col-span-2 flex items-center gap-2 text-sm font-medium text-text-primary">
                     <input
                         type="checkbox"
-                        checked={form.active}
-                        onChange={handleChange("active")}
+                        {...register("active")}
                         className="h-4 w-4 accent-primary"
                     />
                     Active

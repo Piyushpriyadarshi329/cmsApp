@@ -12,6 +12,7 @@ import {
     otpSchema,
     resetPasswordSchema,
 } from "../../schema/auth/forgotPasswordSchema";
+import {motion} from "motion/react";
 
 const STEPS = {
     EMAIL: "EMAIL",
@@ -89,131 +90,138 @@ export default function ForgotPassword() {
     };
 
     return (
-        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-white">
-            <div className="relative w-full flex-grow px-4 sm:max-w-[360px]">
-                <div className="w-full flex-1 bg-surface">
-                    <div className="z-10 w-full bg-white">
-                        <div className="flex w-full items-start gap-2">
-                            <LuBox size={50} className="text-primary" />
-                            <div className="flex w-full flex-col">
-                                <h1 className="mb-1.5 !text-primary text-[26px]">CMS</h1>
-                                <p className="mb-7 text-text-secondary">
-                                    {step === STEPS.EMAIL && "Enter your email to receive an OTP"}
-                                    {step === STEPS.OTP && "Enter the OTP sent to your email"}
-                                    {step === STEPS.RESET && "Set a new password"}
-                                    {step === STEPS.DONE && "Password reset successful"}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 px-8 py-12 shadow">
-                            <ErrorMessage variant="background" message={apiError} />
-
-                            {step === STEPS.EMAIL && (
-                                <form
-                                    className="flex flex-col gap-4"
-                                    onSubmit={emailForm.handleSubmit(handleGenerateOtp)}
-                                >
-                                    <Input
-                                        label="Email"
-                                        error={emailForm.formState.errors.email?.message}
-                                        placeholder="you@company.com"
-                                        {...emailForm.register("email")}
-                                    />
-                                    <Button
-                                        type="submit"
-                                        loading={emailForm.formState.isSubmitting}
-                                        disabled={emailForm.formState.isSubmitting}
-                                    >
-                                        Generate OTP
-                                    </Button>
-                                </form>
-                            )}
-
-                            {step === STEPS.OTP && (
-                                <form
-                                    className="flex flex-col gap-4"
-                                    onSubmit={otpForm.handleSubmit(handleValidateOtp)}
-                                >
-                                    <p className="text-sm text-text-secondary">
-                                        OTP sent to <span className="font-medium text-text-primary">{email}</span>
-                                    </p>
-                                    <Input
-                                        label="OTP"
-                                        error={otpForm.formState.errors.otp?.message}
-                                        placeholder="Enter OTP"
-                                        {...otpForm.register("otp")}
-                                    />
-                                    <Button
-                                        type="submit"
-                                        loading={otpForm.formState.isSubmitting}
-                                        disabled={otpForm.formState.isSubmitting}
-                                    >
-                                        Validate OTP
-                                    </Button>
-                                    <button
-                                        type="button"
-                                        onClick={handleResendOtp}
-                                        className="text-sm font-medium text-primary hover:underline"
-                                    >
-                                        Resend OTP
-                                    </button>
-                                </form>
-                            )}
-
-                            {step === STEPS.RESET && (
-                                <form
-                                    className="flex flex-col gap-4"
-                                    onSubmit={resetForm.handleSubmit(handleResetPassword)}
-                                >
-                                    <Input
-                                        label="New Password"
-                                        type="password"
-                                        error={resetForm.formState.errors.password?.message}
-                                        placeholder="••••••••••••••••"
-                                        {...resetForm.register("password")}
-                                    />
-                                    <Input
-                                        label="Confirm New Password"
-                                        type="password"
-                                        error={resetForm.formState.errors.confirmPassword?.message}
-                                        placeholder="••••••••••••••••"
-                                        {...resetForm.register("confirmPassword")}
-                                    />
-                                    <Button
-                                        type="submit"
-                                        loading={resetForm.formState.isSubmitting}
-                                        disabled={resetForm.formState.isSubmitting}
-                                    >
-                                        Reset Password
-                                    </Button>
-                                </form>
-                            )}
-
-                            {step === STEPS.DONE && (
-                                <div className="flex flex-col gap-4">
-                                    <p className="text-sm text-text-secondary">
-                                        Your password has been reset. You can now log in with your new password.
-                                    </p>
-                                    <Button type="button" onClick={() => navigate("/login")}>
-                                        Back to Login
-                                    </Button>
-                                </div>
-                            )}
-
-                            {step !== STEPS.DONE && (
-                                <button
-                                    type="button"
-                                    onClick={() => navigate("/login")}
-                                    className="text-sm font-medium text-text-secondary hover:underline"
-                                >
-                                    Back to Login
-                                </button>
-                            )}
-                        </div>
+        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-white px-4">
+            <motion.div className="w-full bg-surface sm:max-w-[360px]"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            >
+                <div className="w-full flex gap-2 items-start">
+                    <motion.span
+                        initial={{ rotate: 270 }}
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1.5 }}
+                        className="flex"
+                    >
+                        <LuBox size={50} className="text-primary" />
+                    </motion.span>
+                    <div className="w-full flex flex-col mb-7">
+                        <h1 className="text-[26px] !text-primary">CMS</h1>
+                        <p className="text-text-secondary">
+                            {step === STEPS.EMAIL && "Enter your email to receive an OTP"}
+                            {step === STEPS.OTP && "Enter the OTP sent to your email"}
+                            {step === STEPS.RESET && "Set a new password"}
+                            {step === STEPS.DONE && "Password reset successful"}
+                        </p>
                     </div>
                 </div>
-            </div>
+
+                <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 px-8 py-12 shadow">
+                    <ErrorMessage variant="background" message={apiError} />
+
+                    {step === STEPS.EMAIL && (
+                        <form
+                            className="flex flex-col gap-4"
+                            onSubmit={emailForm.handleSubmit(handleGenerateOtp)}
+                        >
+                            <Input
+                                label="Email"
+                                error={emailForm.formState.errors.email?.message}
+                                placeholder="you@company.com"
+                                {...emailForm.register("email")}
+                            />
+                            <Button
+                                type="submit"
+                                loading={emailForm.formState.isSubmitting}
+                                disabled={emailForm.formState.isSubmitting}
+                            >
+                                Generate OTP
+                            </Button>
+                        </form>
+                    )}
+
+                    {step === STEPS.OTP && (
+                        <form
+                            className="flex flex-col gap-4"
+                            onSubmit={otpForm.handleSubmit(handleValidateOtp)}
+                        >
+                            <p className="text-sm text-text-secondary">
+                                OTP sent to <span className="font-medium text-text-primary">{email}</span>
+                            </p>
+                            <Input
+                                label="OTP"
+                                error={otpForm.formState.errors.otp?.message}
+                                placeholder="Enter OTP"
+                                {...otpForm.register("otp")}
+                            />
+                            <Button
+                                type="submit"
+                                loading={otpForm.formState.isSubmitting}
+                                disabled={otpForm.formState.isSubmitting}
+                            >
+                                Validate OTP
+                            </Button>
+                            <button
+                                type="button"
+                                onClick={handleResendOtp}
+                                className="text-sm font-medium text-primary hover:underline"
+                            >
+                                Resend OTP
+                            </button>
+                        </form>
+                    )}
+
+                    {step === STEPS.RESET && (
+                        <form
+                            className="flex flex-col gap-4"
+                            onSubmit={resetForm.handleSubmit(handleResetPassword)}
+                        >
+                            <Input
+                                label="New Password"
+                                type="password"
+                                error={resetForm.formState.errors.password?.message}
+                                placeholder="••••••••••••••••"
+                                {...resetForm.register("password")}
+                            />
+                            <Input
+                                label="Confirm New Password"
+                                type="password"
+                                error={resetForm.formState.errors.confirmPassword?.message}
+                                placeholder="••••••••••••••••"
+                                {...resetForm.register("confirmPassword")}
+                            />
+                            <Button
+                                type="submit"
+                                loading={resetForm.formState.isSubmitting}
+                                disabled={resetForm.formState.isSubmitting}
+                            >
+                                Reset Password
+                            </Button>
+                        </form>
+                    )}
+
+                    {step === STEPS.DONE && (
+                        <div className="flex flex-col gap-4">
+                            <p className="text-sm text-text-secondary">
+                                Your password has been reset. You can now log in with your new password.
+                            </p>
+                            <Button type="button" onClick={() => navigate("/login")}>
+                                Back to Login
+                            </Button>
+                        </div>
+                    )}
+
+                    {step !== STEPS.DONE && (
+                        <button
+                            type="button"
+                            onClick={() => navigate("/login")}
+                            className="text-sm font-medium text-text-secondary hover:underline"
+                        >
+                            Back to Login
+                        </button>
+                    )}
+                </div>
+            </motion.div>
         </div>
     );
 }

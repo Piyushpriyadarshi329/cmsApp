@@ -66,14 +66,32 @@ export function useClientMembers(clientId) {
 
     const createMember = useCallback(async (payload) => {
         setSaving(true);
+
         try {
-            const { data } = await post(`/tenant/client/${clientId}/user`, payload);
+            const { data } = await post(
+                `/tenant/client/${clientId}/user`,
+                payload
+            );
+
             const newMember = unwrap(data);
-            setMembers((prev) => (newMember && typeof newMember === "object" ? [...prev, newMember] : prev));
-            return true;
+
+            if (newMember && typeof newMember === "object") {
+                setMembers((prev) => [...prev, newMember]);
+            }
+
+            return {
+                success: true,
+                data: newMember,
+                error: null,
+            };
         } catch (err) {
             console.error("Failed to create client member:", err);
-            return false;
+
+            return {
+                success: false,
+                data: null,
+                error: err?.response?.data ?? err,
+            };
         } finally {
             setSaving(false);
         }

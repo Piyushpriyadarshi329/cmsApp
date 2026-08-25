@@ -12,6 +12,7 @@ import {
 import { useAuth } from "../../context/AuthContext.jsx";
 import Button from "../Button/Button.jsx";
 import Tabs from "../Tabs/Tabs.jsx";
+import { IoMenu } from "react-icons/io5";
 
 const NAV_ITEMS = {
   home: {
@@ -96,7 +97,7 @@ export default function Sidebar({
                                   isMobileOpen,
                                   setIsMobileOpen,
                                 }) {
-  const { user, email, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const navItems = useMemo(() => {
@@ -143,12 +144,12 @@ export default function Sidebar({
 
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-text-primary">
-                  Client
+                  {user?.firstName}
                 </p>
 
-                {email && (
+                {user?.email && (
                     <p className="max-w-[170px] truncate text-xs text-text-secondary">
-                      {email}
+                      {user?.email}
                     </p>
                 )}
               </div>
@@ -165,7 +166,7 @@ export default function Sidebar({
           </div>
 
           <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-secondary/70">
-            Menu
+            Menu ({user?.role})
           </p>
 
           <nav className="flex flex-1 flex-col gap-1">
@@ -186,6 +187,12 @@ export default function Sidebar({
             Logout
           </Button>
         </aside>
+        <Button
+            className="sm:hidden !fixed !bottom-4 !right-2 !z-20 !w-12 !h-12 !p-0 !rounded-full flex items-center justify-center"
+            onClick={() => setIsMobileOpen(true)}
+        >
+          <IoMenu size={26} />
+        </Button>
       </>
   );
 }

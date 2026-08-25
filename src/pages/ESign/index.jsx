@@ -11,7 +11,7 @@ import ESignModal from "./ESignModal";
 // Each e-sign tab is a contract status coming off the same contract API.
 const ESIGN_TABS = [
     { value: "ESIGN_PENDING", label: "Pending My Signature" },
-    { value: "PARTIALLY_SIGNED", label: "Requested" },
+    { value: "PARTIALLY_SIGNED", label: "Client Requested" },
     { value: "ACTIVE", label: "Completed" },
 ];
 

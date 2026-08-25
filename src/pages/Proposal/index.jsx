@@ -20,7 +20,6 @@ const COLUMNS = ["Proposal No", "Title", "Client", "Status", "Start Date"];
 export default function Proposal() {
     const navigate = useNavigate();
     const { user } = useAuth();
-    console.log("user",user)
     const tenantId = user?.tenantId;
     const { proposals, loading, saving, addProposal } = useProposals(tenantId);
 
